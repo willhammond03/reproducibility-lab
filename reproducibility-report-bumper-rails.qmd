@@ -1,10 +1,10 @@
 ---
 title: "Reproducibility Report: Maglio & Polman (2014), Study 1"
 subtitle: "Bumper-rails version"
-author: "Your name here"
+author: "Will Hammond"
 date: today
 format:
-  html:
+  pdf:
     toc: true
     toc-location: left
     embed-resources: true
@@ -121,7 +121,7 @@ Count the participants in each direction × station combination. Replace each
 
 ```{r}
 d |>
-  count("FIXME", "FIXME")
+  count("DIRECTION", "STN_NUMBER")
 ```
 
 Does this match the sample size in the paper (202 total, 101 per platform)?
@@ -137,7 +137,7 @@ Fill in the formula with the outcome (the distance rating) and the two
 predictors.
 
 ```{r}
-mod <- aov(FIXME ~ FIXME * FIXME, data = d)
+mod <- aov(DISTANCE ~ DIRECTION * STN_NAME, data = d)
 
 summary(mod)
 ```
@@ -179,7 +179,7 @@ ss_residual <- anova_table |>
 
 anova_table |>
   filter(term != "Residuals") |>
-  mutate(partial_eta_sq = "FIXME") |>
+  mutate(partial_eta_sq = sumsq/(sumsq+ss_residual)) |>
   select(term, df, statistic, p.value, partial_eta_sq)
 ```
 
@@ -199,20 +199,27 @@ SS_direction / SS_total.
 
 # 1. Keep only the St. George ratings
 st_george <- d |>
-  filter("FIXME")
+  filter(STN_NAME=="STG")
 
 # 2. Which group rated St. George as farther away, eastbound or westbound?
 #    No statistics yet, just the mean rating in each direction.
 st_george |>
-  group_by("FIXME") |>
-  summarize(mean_distance = "FIXME", n = n())
+  group_by(DIRECTION) |>
+  summarize(mean_distance = mean(DISTANCE), n = n())
 
 # 3. One-way ANOVA: distance predicted by direction
-st_george_mod <- aov("FIXME", data = st_george)
-tidy(st_george_mod)
+st_george_mod <- aov(DISTANCE~DIRECTION, data = st_george)
+stg_anova_table <- tidy(st_george_mod)
 
 # 4. Partial eta squared (reuse your code from above)
-"FIXME"
+stg_ss_residual <- stg_anova_table |>
+  filter(term == "Residuals") |>
+  pull(sumsq)
+
+stg_anova_table |>
+  filter(term != "Residuals") |>
+  mutate(partial_eta_sq = sumsq/(sumsq+stg_ss_residual)) |>
+  select(term, df, statistic, p.value, partial_eta_sq)
 ```
 
 #### Spadina, Bloor-Yonge, and Sherbourne
@@ -223,43 +230,101 @@ chunk three times works. If you want to try something tidier, the
 
 ```{r}
 #| label: spadina
+spadina <- d |>
+  filter(STN_NAME=="SPAD")
 
+spadina |>
+  group_by(DIRECTION) |>
+  summarize(mean_distance = mean(DISTANCE), n = n())
+
+# 3. One-way ANOVA: distance predicted by direction
+spadina_mod <- aov(DISTANCE~DIRECTION, data = spadina)
+spadina_anova_table <- tidy(spadina_mod)
+
+# 4. Partial eta squared (reuse your code from above)
+ss_residual <- spadina_anova_table |>
+  filter(term == "Residuals") |>
+  pull(sumsq)
+
+spadina_anova_table |>
+  filter(term != "Residuals") |>
+  mutate(partial_eta_sq = sumsq/(sumsq+ss_residual)) |>
+  select(term, df, statistic, p.value, partial_eta_sq)
 ```
 
 ```{r}
 #| label: bloor-yonge
+bloory <- d |>
+  filter(STN_NAME=="B-Y")
 
+
+bloory |>
+  group_by(DIRECTION) |>
+  summarize(mean_distance = mean(DISTANCE), n = n())
+
+# 3. One-way ANOVA: distance predicted by direction
+bloory_mod <- aov(DISTANCE~DIRECTION, data = bloory)
+bloory_anova_table <- tidy(bloory_mod)
+
+# 4. Partial eta squared (reuse your code from above)
+ss_residual <- bloory_anova_table |>
+  filter(term == "Residuals") |>
+  pull(sumsq)
+
+bloory_anova_table |>
+  filter(term != "Residuals") |>
+  mutate(partial_eta_sq = sumsq/(sumsq+ss_residual)) |>
+  select(term, df, statistic, p.value, partial_eta_sq)
 ```
 
 ```{r}
 #| label: sherbourne
+sherb <- d |>
+  filter(STN_NAME=="SHER")
 
+sherb |>
+  group_by(DIRECTION) |>
+  summarize(mean_distance = mean(DISTANCE), n = n())
+
+# 3. One-way ANOVA: distance predicted by direction
+sherb_mod <- aov(DISTANCE~DIRECTION, data = sherb)
+sherb_anova_table <- tidy(sherb_mod)
+
+# 4. Partial eta squared (reuse your code from above)
+ss_residual <- sherb_anova_table |>
+  filter(term == "Residuals") |>
+  pull(sumsq)
+
+sherb_anova_table |>
+  filter(term != "Residuals") |>
+  mutate(partial_eta_sq = sumsq/(sumsq+ss_residual)) |>
+  select(term, df, statistic, p.value, partial_eta_sq)
 ```
 
 Fill in this table as you go:
 
 | Station | Paper *p* | Your *p* | Paper ηp² | Your ηp² |
 |---|---|---|---|---|
-| St. George | < .001 | | .28 | |
-| Spadina | .001 | | .20 | |
-| Bloor-Yonge | .053 | | .08 | |
-| Sherbourne | < .001 | | .24 | |
+| St. George | < .001 | < .001 | .28 | .28 |
+| Spadina | .001 | .001 | .20 | .20 |
+| Bloor-Yonge | .053 | .053 | .08 | .08 |
+| Sherbourne | < .001 | < .001 | .24 | .24 |
 
 ## Step 5: Reflection
 
 Were you able to reproduce the results you attempted to reproduce? If not, which
 parts could you not reproduce?
 
-> ANSWER HERE
+Yes. 
 
 How difficult was it to reproduce the results?
 
-> ANSWER HERE
+It wasn't very difficult. More my own inexperience than anything else. 
 
 What made it hard, and what made it easy? Think about the data files, the
 variable names, and how much the paper told you about the analysis.
 
-> ANSWER HERE
+The paper gave good contextual background and this helped me with the analysis. The data set is relatively small which made things easier. They could be a little more clear in the paper about what statistical tests they actually used and the variable names. 
 
 ## Bonus questions
 
