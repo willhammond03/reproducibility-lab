@@ -1,0 +1,21 @@
+# R session junk -- never useful to a collaborator
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Renviron
+.Rproj.user/
+Rplots.pdf
+
+# Quarto build output
+/.quarto/
+*_cache/
+
+# Operating system junk
+.DS_Store
+Thumbs.db
+
+# Rendered output. Delete these lines if your instructor asks you to
+# commit the rendered HTML with your assignment.
+reproducibility-report-*.html
+reproducibility-report-*_files/

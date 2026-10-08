@@ -1,0 +1,263 @@
+---
+title: "Reproducibility Report: Maglio & Polman (2014), Study 1"
+subtitle: "Minimal version"
+author: "Your name here"
+date: today
+format:
+  html:
+    toc: true
+    toc-location: left
+    embed-resources: true
+execute:
+  error: true
+---
+
+:::{.callout-note title="Goals"}
+1. Load a published dataset with `here()` and `read_excel()`
+2. Reproduce the ANOVA and effect sizes reported in the paper
+3. Say clearly what did and did not reproduce, and why
+:::
+
+This is the **minimal** version: the structure and the questions are here, and
+you write the code. If you get stuck, `reproducibility-report-bumper-rails.qmd`
+has the same steps with most of the code filled in. It is fine to peek at it
+for one step and then come back.
+
+`error: true` is set at the top of this file, so the document still renders
+while some chunks are unfinished. The chunks that still fail show their error
+message in red.
+
+Before you start, read Study 1 in the paper:
+`original_paper/maglio-polman-2014.pdf` (two pages).
+
+## The study
+
+Maglio, S. J., & Polman, E. (2014). Spatial orientation shrinks and expands
+psychological distance. *Psychological Science, 25*(7), 1345–1352.
+<https://doi.org/10.1177/0956797614530571>
+
+**Methods summary.** Researchers recruited 202 volunteers at the Bay Street
+subway station in Toronto. Half were waiting on the westbound platform and half
+on the eastbound platform. Each participant was randomly assigned to rate how far
+away one of four stations felt (1 = very close, 7 = very far): Spadina (two stops
+west), St. George (one stop west), Bloor-Yonge (one stop east), or Sherbourne
+(two stops east). The authors ran a 2 × 4 ANOVA on the distance ratings, then
+compared eastbound and westbound travelers separately at each station.
+
+**Target outcomes.** This is the result you are trying to reproduce, quoted from
+the Study 1 results section:
+
+> We carried out a 2 (orientation: toward, away from) × 4 (station: Spadina, St.
+> George, Bloor-Yonge, Sherbourne) analysis of variance (ANOVA) on closeness
+> ratings, which revealed no main effect of orientation, F < 1, and a main effect
+> of station, F(3, 194) = 24.10, p < .001, ηp² = .27. This main effect was
+> qualified by the predicted interaction between orientation and station, F(3,
+> 194) = 16.28, p < .001, ηp² = .20. We decomposed this interaction by the
+> subjective-distance ratings between participants traveling east and west for
+> each of the four subway stations. Westbound participants rated the stations to
+> the west of Bay Street as closer than did eastbound participants; this effect
+> was obtained for both the station one stop to the west (St. George, p < .001,
+> ηp² = .28) and the station two stops to the west (Spadina, p = .001, ηp² =
+> .20). The opposite pattern held true for stations to the east of Bay Street.
+> Eastbound participants rated the stations to the east of Bay Street as closer
+> than did westbound participants; this effect was obtained for both the station
+> one stop to the east (Bloor-Yonge, p = .053, ηp² = .08) and the station two
+> stops to the east (Sherbourne, p < .001, ηp² = .24). Figure 1 summarizes these
+> results.
+
+ηp² is **partial eta squared**, an effect size. You will compute it below.
+
+## Step 1: Load packages
+
+`readxl` (reads Excel files) and `broom` (turns model output into tibbles) are
+installed along with the tidyverse, but `library(tidyverse)` does not load them,
+so we load them by name.
+
+```{r}
+#| eval: false
+install.packages(c("tidyverse", "here"))
+```
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readxl)
+library(broom)
+library(here)
+```
+
+## Step 2: Load the data
+
+The authors posted one Excel file per study. We only need Study 1. The columns
+are described in `docs/codebook.md`.
+
+```{r}
+d <- read_excel(here("data", "S1_Subway.xlsx"))
+
+glimpse(d)
+```
+
+## Step 3: Tidy the data
+
+The data are already tidy: one row per participant, one column per variable.
+But R has read `DIRECTION` and `STN_NAME` in as text. For an ANOVA they need to
+be **factors**, and we set the order of the station levels to run west to east,
+so tables and plots come out in map order.
+
+Use `mutate()` and `factor()` to convert both columns. For `STN_NAME`, give
+`factor()` a `levels` argument listing the stations from west to east.
+
+```{r}
+
+```
+
+## Step 4: Reproduce the analysis
+
+### How many people are in each cell?
+
+Count the participants in each direction × station combination. Does it match
+the paper (202 total, 101 per platform)? Is every cell the same size?
+
+```{r}
+
+```
+
+### The 2 × 4 ANOVA
+
+Fit a two-way ANOVA with `aov()`: distance predicted by direction, station, and
+their interaction. Remember that `y ~ A * B` is shorthand for `y ~ A + B + A:B`.
+
+```{r}
+
+```
+
+The numbers in parentheses in "F(3, 194)" are the degrees of freedom: 3 for the
+effect, 194 for the residuals. Check that yours match.
+
+The teaching team gets:
+
+- Main effect of direction: F(1, 194) = 0.66
+- Main effect of station: F(3, 194) = 23.35
+- Interaction between direction and station: F(3, 194) = 16.28
+
+Two of those match the paper. One is close but not the same. Keep going; the
+bonus question at the end asks you to work out why.
+
+### Partial eta squared
+
+Partial eta squared is the share of variance an effect accounts for, once
+the other effects are set aside:
+
+$$
+\eta_p^2 = \frac{SS_\text{effect}}{SS_\text{effect} + SS_\text{residual}}
+$$
+
+Compute it for each effect. Hint: `tidy()` from broom turns the ANOVA table into
+a tibble, with the sums of squares in a column called `sumsq`.
+
+```{r}
+
+```
+
+Do your values round to the paper's .27 (station) and .20 (interaction)?
+
+### Station-by-station comparisons
+
+Now compare eastbound and westbound travelers at each station separately. For
+each station: keep only that station's rows, compute the mean rating in each
+direction, run a one-way ANOVA of distance on direction, and compute ηp².
+
+#### St. George
+
+```{r}
+#| label: st-george
+
+```
+
+#### Spadina
+
+```{r}
+#| label: spadina
+
+```
+
+#### Bloor-Yonge
+
+```{r}
+#| label: bloor-yonge
+
+```
+
+#### Sherbourne
+
+```{r}
+#| label: sherbourne
+
+```
+
+Fill in this table as you go:
+
+| Station | Paper *p* | Your *p* | Paper ηp² | Your ηp² |
+|---|---|---|---|---|
+| St. George | < .001 | | .28 | |
+| Spadina | .001 | | .20 | |
+| Bloor-Yonge | .053 | | .08 | |
+| Sherbourne | < .001 | | .24 | |
+
+## Step 5: Reflection
+
+Were you able to reproduce the results you attempted to reproduce? If not, which
+parts could you not reproduce?
+
+> ANSWER HERE
+
+How difficult was it to reproduce the results?
+
+> ANSWER HERE
+
+What made it hard, and what made it easy? Think about the data files, the
+variable names, and how much the paper told you about the analysis.
+
+> ANSWER HERE
+
+## Bonus questions
+
+**1. Why is the station F different?** Your F for station (23.35) is close to
+the paper's (24.10) but not equal, while the interaction matches exactly. Try
+refitting the model with the predictors in the opposite order,
+`DISTANCE ~ STN_NAME * DIRECTION`. Does anything change? Look back at your cell
+counts. What does that suggest about how the authors' software (SPSS) and R's
+`aov()` each divide up the variance? `docs/anova-in-r.md` explains it, but try
+first.
+
+```{r}
+
+```
+
+**2. Orientation or direction?** The paper describes the factor as
+"orientation: toward, away from". The dataset has `DIRECTION`: east or west.
+Are those the same variable? If not, which one did the authors actually put in
+their ANOVA? Make an `orientation` column with `if_else()` and refit the model
+with it to check.
+
+```{r}
+
+```
+
+**3. Reproduce Figure 1.** Plot the mean distance rating for each station,
+split by direction, with error bars of ±1 standard error, as in the paper.
+`stat_summary(fun.data = mean_se)` will draw both the means and the error bars
+for you.
+
+```{r}
+
+```
+
+## Going further
+
+Instead of four near-identical chunks, do all four stations in one pipeline.
+Look up `nest()` and `map()`.
+
+```{r}
+
+```
